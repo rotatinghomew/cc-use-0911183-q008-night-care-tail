@@ -1,0 +1,19 @@
+[
+  {
+    "id": "r1",
+    "person": "p1",
+    "night": "2026-10-01",
+    "skills": [
+      "basic",
+      "transfer"
+    ]
+  },
+  {
+    "id": "r2",
+    "person": "p2",
+    "night": "2026-10-01",
+    "skills": [
+      "basic"
+    ]
+  }
+]

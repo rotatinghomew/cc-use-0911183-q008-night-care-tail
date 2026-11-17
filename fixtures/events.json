@@ -1,0 +1,29 @@
+[
+  {
+    "id": "e1",
+    "episode": "x1",
+    "resident": "r1",
+    "skill": "basic",
+    "start": "2026-10-01T23:50",
+    "arrived": "2026-10-02T00:00",
+    "end": "2026-10-02T00:30"
+  },
+  {
+    "id": "e2",
+    "episode": "x2",
+    "resident": "r2",
+    "skill": "transfer",
+    "start": "2026-10-02T00:05",
+    "arrived": "2026-10-02T00:20",
+    "end": "2026-10-02T00:40"
+  },
+  {
+    "id": "e3",
+    "episode": "x3",
+    "resident": "r3",
+    "skill": "basic",
+    "start": "2026-10-02T05:50",
+    "arrived": null,
+    "end": null
+  }
+]

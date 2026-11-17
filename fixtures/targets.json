@@ -1,0 +1,10 @@
+[
+  {
+    "id": "basic",
+    "response_minutes": 10
+  },
+  {
+    "id": "transfer",
+    "response_minutes": 15
+  }
+]
