@@ -1,0 +1,65 @@
+[
+  {
+    "id": "plan-baseline",
+    "description": "现行夜班：两名普通照护加一名可兼顾转运的持证人员",
+    "workers": [
+      {
+        "skills": [
+          "basic"
+        ],
+        "count": 2
+      },
+      {
+        "skills": [
+          "basic",
+          "transfer"
+        ],
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "plan-flex-four",
+    "description": "增加一名可兼顾普通照护与转运的双证人员",
+    "workers": [
+      {
+        "skills": [
+          "basic"
+        ],
+        "count": 2
+      },
+      {
+        "skills": [
+          "basic",
+          "transfer"
+        ],
+        "count": 2
+      }
+    ]
+  },
+  {
+    "id": "plan-specialist-four",
+    "description": "增加一名仅能处理转运的专项人员",
+    "workers": [
+      {
+        "skills": [
+          "basic"
+        ],
+        "count": 2
+      },
+      {
+        "skills": [
+          "basic",
+          "transfer"
+        ],
+        "count": 1
+      },
+      {
+        "skills": [
+          "transfer"
+        ],
+        "count": 1
+      }
+    ]
+  }
+]

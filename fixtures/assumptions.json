@@ -1,0 +1,24 @@
+[
+  {
+    "id": "assumption-night-v1",
+    "description": "夜间应急储备评估的第一版负荷假设，复盘记录引用此编号",
+    "window": {
+      "start_hour": 22,
+      "end_hour": 6
+    },
+    "scenario": {
+      "id": "imputed-calls",
+      "open_end_policy": "imputed",
+      "call_policy": "calls"
+    },
+    "merge_gap_minutes": 5,
+    "impute_quantile": 0.9,
+    "confidence": 0.95,
+    "bootstrap_replicates": 1000,
+    "surge_quantile": 0.8,
+    "targets": {
+      "basic": 10,
+      "transfer": 15
+    }
+  }
+]

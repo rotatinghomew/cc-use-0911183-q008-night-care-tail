@@ -95,3 +95,51 @@ class HttpTests(unittest.TestCase):
             urllib.request.urlopen(request)
         self.assertEqual(caught.exception.code, 400)
         self.assertEqual(self.application.demo(), before)
+
+    def test_timeline_and_evaluate_endpoints(self):
+        with urllib.request.urlopen(self.base + '/api/timeline?night=2026-10-01') as response:
+            timeline = json.load(response)
+        self.assertEqual(timeline['night'], '2026-10-01')
+        self.assertEqual(timeline['open_end_event_ids'], ['e3'])
+        body = json.dumps({'plan_ids': ['plan-baseline'], 'replicates': 50}).encode('utf-8')
+        request = urllib.request.Request(self.base + '/api/evaluate', data=body,
+                                         headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(request) as response:
+            evaluation = json.load(response)
+        self.assertEqual(evaluation['plan_id'], 'plan-baseline')
+        self.assertIn('conservative', evaluation)
+
+    def test_reconcile_endpoint_persists_traceable_record(self):
+        body = json.dumps({'night': '2026-10-01', 'plan_id': 'plan-baseline'}).encode('utf-8')
+        request = urllib.request.Request(self.base + '/api/reconcile-night', data=body,
+                                         headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(request) as response:
+            payload = json.load(response)
+        self.assertEqual(payload['reconciliation']['assumptions_id'], 'assumption-night-v1')
+        stored = self.application.store.get('reconciliations', 'recon-2026-10-01-plan-baseline')
+        self.assertEqual(stored['plan_id'], 'plan-baseline')
+
+    def test_evaluate_rejects_unknown_plan(self):
+        body = json.dumps({'plan_ids': ['missing']}).encode('utf-8')
+        request = urllib.request.Request(self.base + '/api/evaluate', data=body,
+                                         headers={'Content-Type': 'application/json'})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(request)
+        self.assertEqual(caught.exception.code, 404)
+
+    def test_invalid_query_params_return_400(self):
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(self.base + '/api/timeline')
+        self.assertEqual(caught.exception.code, 400)
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(self.base + '/api/timeline?night=2026-10-01&open_end_policy=bogus')
+        self.assertEqual(caught.exception.code, 400)
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(self.base + '/api/replay?night=2026-10-01&mode=bogus')
+        self.assertEqual(caught.exception.code, 400)
+        body = json.dumps({'plan_ids': ['plan-baseline'], 'confidence': 1.5}).encode('utf-8')
+        request = urllib.request.Request(self.base + '/api/evaluate', data=body,
+                                         headers={'Content-Type': 'application/json'})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(request)
+        self.assertEqual(caught.exception.code, 400)

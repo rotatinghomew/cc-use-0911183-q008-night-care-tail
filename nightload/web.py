@@ -82,6 +82,10 @@ def handler_for(application):
             except (ValueError, TypeError) as error:
                 return self.send_json(400, {'error': str(error)})
             except KeyError as error:
+                message = str(error).strip("'")
+                # 缺少当前接口必需的查询参数属于请求不合法，不是资源不存在
+                if message in {'night', 'start', 'end'}:
+                    return self.send_json(400, {'error': f'缺少必需参数 {message}'})
                 return self.send_json(404, {'error': str(error)})
 
         def do_GET(self):
@@ -93,27 +97,73 @@ def handler_for(application):
     return Handler
 
 
+def run_command(application, args):
+    if args.command == 'load':
+        if not args.input or not args.database:
+            raise ValueError('load 需要 --input 和 --database')
+        print(json_bytes(load_dataset(application.store, args.input)).decode('utf-8'))
+        return
+    if args.command == 'serve':
+        HTTPServer((args.host, args.port), handler_for(application)).serve_forever()
+        return
+    if args.command == 'demo':
+        print(json_bytes(application.demo()).decode('utf-8'))
+        return
+    if args.command == 'check':
+        print(json_bytes(application.check()).decode('utf-8'))
+        return
+    if args.command == 'timeline':
+        if not args.night:
+            raise ValueError('timeline 需要 --night')
+        print(json_bytes(application.night_timeline(
+            args.night, args.open_end_policy, args.call_policy, args.merge_gap)).decode('utf-8'))
+        return
+    if args.command == 'replay':
+        if not args.night:
+            raise ValueError('replay 需要 --night')
+        print(json_bytes(application.night_replay(
+            args.night, args.mode, args.open_end_policy, args.call_policy,
+            args.merge_gap)).decode('utf-8'))
+        return
+    if args.command == 'evaluate':
+        payload = {'mode': args.mode, 'replicates': args.replicates}
+        if args.plans:
+            payload['plan_ids'] = [item.strip() for item in args.plans.split(',') if item.strip()]
+        print(json_bytes(application.plan_evaluation(payload)).decode('utf-8'))
+        return
+    if args.command == 'reconcile':
+        if not args.night or not args.plan:
+            raise ValueError('reconcile 需要 --night 和 --plan')
+        print(json_bytes(application.night_reconciliation({
+            'night': args.night, 'plan_id': args.plan,
+            'assumption_id': args.assumption})).decode('utf-8'))
+        return
+    raise ValueError(f'未知命令 {args.command}')
+
+
 def main():
-    parser = argparse.ArgumentParser(description='本地业务服务与数据核对')
-    parser.add_argument('command', choices=['demo', 'check', 'serve', 'load'])
+    parser = argparse.ArgumentParser(description='本地业务服务、共同突发分析与数据核对')
+    parser.add_argument('command', choices=['demo', 'check', 'serve', 'load',
+                                            'timeline', 'replay', 'evaluate', 'reconcile'])
     parser.add_argument('--database')
     parser.add_argument('--input')
     parser.add_argument('--port', type=int, default=8765)
     parser.add_argument('--host', default='127.0.0.1')
+    parser.add_argument('--night')
+    parser.add_argument('--plan')
+    parser.add_argument('--assumption', default='assumption-night-v1')
+    parser.add_argument('--plans')
+    parser.add_argument('--mode', choices=['greedy', 'feasible'], default='greedy')
+    parser.add_argument('--open-end-policy', choices=['observed', 'imputed'], default='observed')
+    parser.add_argument('--call-policy', choices=['episode', 'calls'], default='episode')
+    parser.add_argument('--merge-gap', type=int, default=5)
+    parser.add_argument('--replicates', type=int, default=1000)
     args = parser.parse_args()
     with tempfile.TemporaryDirectory() as directory:
         store = Store(args.database or str(Path(directory) / 'business.sqlite3'))
         application = Application(store)
         application.seed()
         try:
-            if args.command == 'load':
-                if not args.input or not args.database:
-                    parser.error('load 需要 --input 和 --database')
-                print(json_bytes(load_dataset(store, args.input)).decode('utf-8'))
-            elif args.command == 'serve':
-                HTTPServer((args.host, args.port), handler_for(application)).serve_forever()
-            else:
-                value = application.demo() if args.command == 'demo' else application.check()
-                print(json_bytes(value).decode('utf-8'))
+            run_command(application, args)
         finally:
             store.close()
