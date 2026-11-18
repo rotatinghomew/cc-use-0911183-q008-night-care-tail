@@ -4,3 +4,13 @@ version = "0.1.0"
 description = "夜间照护共同突发负荷与技能储备分析的业务数据服务"
 requires-python = ">=3.11"
 dependencies = ["numpy==2.2.6", "scipy==1.15.3"]
+
+[build-system]
+requires = ["setuptools==75.8.0", "wheel==0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["nightload"]
+
+[tool.unittest]
+start-directory = "tests"
